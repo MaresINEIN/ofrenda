@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect} from 'react'
 import { Links , useFetcher} from '@remix-run/react'
-import { crearDedicatoria } from '../utilities'
+import { crearDedicatoria  , obtenerDedicatorias} from '../utilities'
+import Swal from 'sweetalert2'
 
 
 function dedicatorias() {
@@ -8,18 +9,34 @@ function dedicatorias() {
     const formulario = useRef()
     const [anonimo,setAnonimo] = useState(true)
     const [img,setImg] = useState()
+    const [respuesta,setRespuesta] = useState()
+    const [dedicatorias,setDedicatorias] = useState()
 
     const [websocket, setWebsocket] = useState()
 
     useEffect(()=>{
+        if (respuesta) {
+            Swal.fire({
+                imageUrl: 'https://media.giphy.com/media/ThrM4jEi2lBxd7X2yz/giphy.gif',
+                imageHeight: 400,
+                imageAlt: 'A tall image',
+                footer:respuesta.detail ? "Es necesaria una imagen o un texto" : "Buuuu!"
+              })
+        }
+    },[respuesta])
+
+    useEffect(()=>{
+        if (!dedicatorias) {
+            obtenerDedicatorias(setDedicatorias)
+        }
         if (websocket) {
             websocket.onmessage = (event) => {
-                console.log(event.data)
+                obtenerDedicatorias(setDedicatorias)
             }
         }else{
             setWebsocket(new WebSocket(`ws://192.168.1.183:4000/websocket`));
         }
-    },[])
+    },[websocket])
 
 
     function handleUpload(logo) {
@@ -30,11 +47,26 @@ function dedicatorias() {
         };
       }
 
-    function sendForm() {
+    async function sendForm() {
         const texto = document.getElementById('mensajeDedicatoria').value
         const autor = document.getElementById('autor')
-        const dedicatoria =  crearDedicatoria()
+        crearDedicatoria( autor ? autor.value : '', img, texto , setRespuesta)
+    }
 
+    function verDedicatoria(e) {
+        Swal.fire({
+            html:
+            '<div className="text-center ">'+
+                            `<h1 className="h6 mt-3 mb-3">${e.autor}</h1>`+
+                            e.imagen && `<img src=${e.imagen} alt="" className="mt-3" />`+
+                            '<p className="w-75 mx-auto mt-3 ">'+
+                            e.texto+
+                            '</p>'+
+                            '</div>'
+
+            
+          })
+        
     }
   return (
     <main className='dedicatorias-view'>
@@ -59,12 +91,12 @@ function dedicatorias() {
                     
                     <textarea name="mensajeDedicatoria" id="mensajeDedicatoria" cols="20" rows="5" className='mt-2 dedicatrioaText w-75 d-block mx-auto' />
                     <label className='d-block mx-auto mt-3 mb-3' htmlFor="">
-                        <input  onChange={()=>setAnonimo(!anonimo)} checked={anonimo} type="checkbox"  name="autor" id="autor" className='' />
+                        <input  onChange={()=>setAnonimo(!anonimo)} checked={anonimo} type="checkbox"  name="autor" className='' />
                         <span className='ms-2'>Anonimo</span>
                     </label>
                     {
                          !anonimo &&
-                         <input type="text" className='w-75 mx-auto ps-2 pe-2' />
+                         <input type="text"  id="autor" className='w-75 mx-auto ps-2 pe-2' />
                     }
                     <div className="text-end w-75 mx-auto mt-3">
                         <button onClick={()=>{sendForm()}} className='ms-auto'>Crear</button>
@@ -72,68 +104,24 @@ function dedicatorias() {
                     </div>
                 </fetcher.Form> 
             </div>
-            <div className="col-9 p-0 rowContainerDed">
+            <div className="col-9 p-0 rowContainerDed h-100">
                 <div className="row mt-4 ">
-                    <div className="col-3 h-100 mb-4">
+                    { dedicatorias &&
+                    dedicatorias.map(e => (
+                    <div onClick={()=>verDedicatoria(e)} key={e.id} className="col-3 cartaDedicatoriaPadre h-100 mb-4">
                         <div className="cartaDedicatoria text-center">
-                            <h1 className='h6 mt-3 mb-3'>Gustavo</h1>
+                            <h1 className='h6 mt-3 mb-3'>{e.autor}</h1>
                             <div className='formOfrenda w-75 mx-auto'></div>
-                            <img src="/images/meme.jpg" alt="" width={190} height={200} className='mt-3' />
+                            {e.imagen !== "/" &&
+                                <img src={e.imagen} alt="" width={190} height={200} className='mt-3' />
+                            }
                             <p className='w-75 mx-auto mt-3 '>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dolorem quaerat ducimus praesentium, recusandae maxime facere aliquid quo fugit animi saepe ea blanditiis accusantium earum harum porro hic vero error!
+                                {e.texto}
                             </p>
                         </div>
                     </div>
-                    <div className="col-3 h-100 mb-4">
-                        <div className="cartaDedicatoria text-center">
-                            <h1 className='h6 mt-3 mb-3'>Gustavo</h1>
-                            <div className='formOfrenda w-75 mx-auto'></div>
-                            <img src="/images/meme.jpg" alt="" width={190} height={200} className='mt-3' />
-                            <p className='w-75 mx-auto mt-3 '>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dolorem quaerat ducimus praesentium, recusandae maxime facere aliquid quo fugit animi saepe ea blanditiis accusantium earum harum porro hic vero error!
-                            </p>
-                        </div>
-                    </div>
-                    <div className="col-3 h-100 mb-4">
-                        <div className="cartaDedicatoria text-center">
-                            <h1 className='h6 mt-3 mb-3'>Gustavo</h1>
-                            <div className='formOfrenda w-75 mx-auto'></div>
-                            <img src="/images/meme.jpg" alt="" width={190} height={200} className='mt-3' />
-                            <p className='w-75 mx-auto mt-3 '>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dolorem quaerat ducimus praesentium, recusandae maxime facere aliquid quo fugit animi saepe ea blanditiis accusantium earum harum porro hic vero error!
-                            </p>
-                        </div>
-                    </div>
-                    <div className="col-3 h-100 mb-4">
-                        <div className="cartaDedicatoria text-center">
-                            <h1 className='h6 mt-3 mb-3'>Gustavo</h1>
-                            <div className='formOfrenda w-75 mx-auto'></div>
-                            <img src="/images/meme.jpg" alt="" width={190} height={200} className='mt-3' />
-                            <p className='w-75 mx-auto mt-3 '>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dolorem quaerat ducimus praesentium, recusandae maxime facere aliquid quo fugit animi saepe ea blanditiis accusantium earum harum porro hic vero error!
-                            </p>
-                        </div>
-                    </div>
-                    <div className="col-3 h-100 mb-4">
-                        <div className="cartaDedicatoria text-center">
-                            <h1 className='h6 mt-3 mb-3'>Gustavo</h1>
-                            <div className='formOfrenda w-75 mx-auto'></div>
-                            <img src="/images/meme.jpg" alt="" width={190} height={200} className='mt-3' />
-                            <p className='w-75 mx-auto mt-3 '>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dolorem quaerat ducimus praesentium, recusandae maxime facere aliquid quo fugit animi saepe ea blanditiis accusantium earum harum porro hic vero error!
-                            </p>
-                        </div>
-                    </div>
-                    <div className="col-3 h-100 mb-4">
-                        <div className="cartaDedicatoria text-center">
-                            <h1 className='h6 mt-3 mb-3'>Gustavo</h1>
-                            <div className='formOfrenda w-75 mx-auto'></div>
-                            <img src="/images/meme.jpg" alt="" width={190} height={200} className='mt-3' />
-                            <p className='w-75 mx-auto mt-3 '>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni dolorem quaerat ducimus praesentium, recusandae maxime facere aliquid quo fugit animi saepe ea blanditiis accusantium earum harum porro hic vero error!
-                            </p>
-                        </div>
-                    </div>
+                    )) 
+                    }
                 </div>
             </div>
         </div>

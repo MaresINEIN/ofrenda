@@ -1,5 +1,6 @@
 import styles from 'bootstrap/dist/css/bootstrap.min.css'
 import estilos from './globalStyles.css'
+
 import {
   Links,
   LiveReload,

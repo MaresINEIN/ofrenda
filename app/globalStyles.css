@@ -12,6 +12,10 @@
 .rowContainer{
     height: 80vh;
 }
+.rowContainerDed{
+    overflow: auto ;
+    height: 70vh;
+}
 .formOfrenda{
     border-radius: 2.5rem;
     border: 2px solid white;
@@ -49,6 +53,18 @@ button{
     border-radius: 2.5rem;
     letter-spacing: 4px;
     background-color: rgb(255, 166, 0);
+}
+.cartaDedicatoria{
+    border: 2px solid white;
+    height: 37vh;
+    border-radius: 2.5rem;
+
+}
+.cartaDedicatoria > p{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
 }
 @font-face {
     font-family: 'Monster';
